@@ -24,7 +24,7 @@ class Player
     if @rest_since_last_fight.nil? then @rest_since_last_fight = true end
     @warrior = warrior
     # CHEAT
-    @heal_counter = 3
+    @heal_counter ||= 3
   end
 
   def update_damage_history
@@ -40,7 +40,11 @@ class Player
   end
 
   def rest!
-    @warrior.rest!
+    # CHEAT
+    if @heal_counter > 0
+      @warrior.rest!
+      @heal_counter -= 1
+    end
     @rest_since_last_fight = true
   end
 
