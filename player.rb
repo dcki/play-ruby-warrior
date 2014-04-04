@@ -45,6 +45,8 @@ class Player
           end
           @attacked_last_turn = false
         end
+      elsif warrior.feel.captive?
+        warrior.rescue!
       else
         attack!
       end
