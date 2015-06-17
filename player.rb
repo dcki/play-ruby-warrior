@@ -51,9 +51,77 @@ class Player
   def enemy_attacked
     health < @health_last_turn
   end
+  def enemy_in_range
+    space = @warrior.look[1]
+    if !space.empty? && !space.captive? && !space.wall?
+      return true
+    else
+      return false
+    end
+  end
   def play_turn(warrior)
 
     init warrior
+
+    # There can be a thing on top of the stairs that hides them. E.g. on one
+    # level a captive is on the stairs until you rescue them. The plan below
+    # was not written with that in mind and may be disrupted by that.
+    #
+    # On the first turn, decide which direction to go and start in that
+    # direction:
+    #   if (stairs in view forward)
+    #       if (anything other than empty and wall backward)
+    #           pivot and fight_until_only_empty_and_wall
+    #       else
+    #           fight_to_stairs.
+    #       end
+    #   elsif (stairs in view backward)
+    #       if (anything other than empty and wall forward)
+    #           fight_until_only_empty_and_wall
+    #       else
+    #           pivot and fight_to_stairs
+    #       end
+    #   else # Don't see stairs.
+    #       if (see wall in front)
+    #           if (see only wall and empty in front)
+    #               pivot and fight_to_stairs
+    #           else
+    #               fight_until_only_empty_and_wall
+    #           end
+    #       elsif (see wall backward)
+    #           if (see only wall and empty backward)
+    #               fight_to_stairs
+    #           else
+    #               pivot and fight_until_only_empty_and_wall
+    #           end
+    #       else
+    #           fight until you see wall or stairs and then re-decide.
+    #       end
+    #   end
+    #
+    # On subsequent turns:
+    #   if (haven't seen wall or stairs)
+    #       if (see stairs)
+    #           pivot and fight_until_only_empty_and_wall.
+    #       elsif (see wall)
+    #           if (see anything other than empty)
+    #               fight until you see only wall or stairs.
+    #           else
+    #               pivot and fight_until_only_empty_and_wall.
+    #           end
+    #       end
+    #   elsif (see wall in front and not stairs)
+    #       if (only empty and wall in front)
+    #           fight until you see only wall or stairs.
+    #       
+    #     
+
+    #puts warrior.look[1].to_s
+
+    #'Archer'
+    #'Wizard'
+    #'Sludge'
+    #'Thick Sludge'
 
     # Best known for level 7, still not good enough. :p
     # It was good enough, but -s option produces misleading victory message. :/
@@ -75,9 +143,11 @@ class Player
         pivot!
       end
     elsif feel.empty?
-      # 1 is max enemy ranged damage encountered (3) minus amount healed when
+      if enemy_in_range
+        warrior.shoot!
+      # 1 is archer damage (3) minus amount healed when
       # resting (2).
-      if @attacked_last_turn && health > 1
+      elsif @attacked_last_turn && health > 1
         rest!
       elsif @no_enemy_attack_since_last_victory
         walk!
